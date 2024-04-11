@@ -1,12 +1,24 @@
-
 Imports System.Data.OleDb
-
-'overall the main issue i'm having is the library imported above when I try to use it then program outputs a message saying it is not usable as the library is not imported
-'in terms of what I need the database to do I need it to open the table and execute a query this is a MUST. Getting the program to write to the database is just added functionality
+Imports Microsoft.VisualBasic.ApplicationServices
+Imports Microsoft.VisualBasic.Logging
 Public Class Form1
-    Private Sub Button1_Click(sender As Object, e As EventArgs) Handles Button1.Click
+
+    Dim user As userInformation 'records for users
+    Dim allUsers(9) As userInformation
+
+    Dim tempId As String = "0" 'variables used for registration
+    Dim tempUsername As String = ""
+    Dim tempPassword As String = ""
+
+    Dim login As Boolean = False 'variables for program operation
+    Dim verifyLoginDetails As Boolean = False
+    Dim max As Integer = 0
+    Dim optionInputted As String = ""
+    Dim loginCreate As Integer = 0
+    Private Sub Button1_Click(sender As Object, e As EventArgs) Handles Button1.Click 'Start quiz button
 
         startProgram()
+
     End Sub
     Structure userInformation
 
@@ -19,44 +31,13 @@ Public Class Form1
 
     Sub startProgram()
 
-        Dim user As userInformation
-        Dim allUsers(9) As userInformation
-        Dim optionInputted As String = ""
-        Dim tempUsername As String
-        Dim tempPassword As String
-        Dim tempId As String = "0"
-        Dim loginCreate As Integer = 0
-        Dim login As Boolean
-        Dim verifyLoginDetails As Boolean
-        Dim max As Integer
-
-        While login <> True
-            optionInputted = InputBox("login or create")
-            If optionInputted = "login" Then
-                loginCreate = 1
-                'inputAccountInfo(tempPassword, tempUsername, loginCreate) 'this is where the user inputs the password and username and the program verifies they are both 8 characters
-                'dataBaseConnection(allUsers)
-                bubbleSort(allUsers) 'for examination purposes I need to use an algorithm such as binary search or bubble sort to filter through the data
-                'verifyLogin(allUsers, tempPassword, tempUsername, verifyLoginDetails) 'this is the method that checks the 10 accounts imported in from the database and compares them to what the user has inputted as their password and username in the login process
-                'login = True 'this stops the loop when logged in as the game can only be played with the user logged in
-                'homeScreen(user, allUsers) 'this is where the user selects the level they want to continue from
-            ElseIf optionInputted = "create" Then
-                loginCreate = 2
-                inputAccountInfo(tempPassword, tempUsername, loginCreate)
-                'here I need to open the connection and write the username and password the user has created
-                dataBaseConnection(allUsers)
-                findHighestId(allUsers, max)
-                user.id = max + 1
-                user.username = tempUsername
-                user.password = tempPassword
-                user.level = 0
-                login = True
-                homeScreen(user, allUsers)
-            Else
-                MsgBox("error please enter 'login' to login to your account or enter 'create' to create an account")
-            End If
-
-        End While
+        If verifyLoginDetails <> True Then
+            ListBox2.Items.Add("login to an existing account or create a new account or see the leaderboard")
+        ElseIf verifyLoginDetails = True Then
+            homeScreen(user, allUsers, verifyLoginDetails)
+        Else
+            ListBox2.Items.Add("error")
+        End If
 
     End Sub
     Sub findHighestId(ByVal users() As userInformation, ByRef max As Integer)
@@ -68,7 +49,7 @@ Public Class Form1
         Next
 
     End Sub
-    Sub inputAccountInfo(ByRef Password As String, ByRef Username As String, ByRef x As Integer)
+    Sub inputAccountInfo(ByRef Password As String, ByRef Username As String)
 
         Dim sign As Boolean ' variable to keep loop if username and password is not 8 characters
         Dim characterCount1 As Integer
@@ -85,20 +66,26 @@ Public Class Form1
                 MsgBox("password and username is 8 characters")
             ElseIf characterCount1 <> 8 And characterCount2 <> 8 Then
                 sign = False
-                MsgBox("error password or username is not 8 characters long")
+                MsgBox("password and username is not 8 characters long")
+            ElseIf characterCount1 = 8 And characterCount2 <> 8 Then
+                sign = False
+                MsgBox("username is not 8 characters")
+            ElseIf characterCount1 <> 8 And characterCount2 = 8 Then
+                sign = False
+                MsgBox("password is not 8 characters")
             Else
                 MsgBox("error")
             End If
         End While
 
     End Sub
-    Sub homeScreen(ByRef user As userInformation, ByVal allUsers() As userInformation)
+    Sub homeScreen(ByRef user As userInformation, ByVal allUsers() As userInformation, ByRef loginStatus As Boolean)
 
         Dim desiredLevel As String
         Dim userInput1 As String
         Dim x As Boolean = False
 
-        userInput1 = InputBox("would you like to select a level or play from the start")
+        userInput1 = InputBox("would you like to select a level or play from the start or sign out")
 
         While x <> True
             If userInput1 = "select" Then
@@ -107,22 +94,22 @@ Public Class Form1
                     level1(user, allUsers)
                     x = True
                 ElseIf desiredLevel = "2" Then
-                    If user.level >= 2 Then
+                    If user.level >= 1 Then
                         level2(user, allUsers)
                         x = True
-                    ElseIf user.level < 2 Then
-                        MsgBox("you have not unlocked that level yet")
+                    ElseIf user.level < 1 Then
+                        ListBox2.Items.Add("you have not unlocked that level yet")
                     Else
-                        MsgBox("error")
+                        ListBox2.Items.Add("error")
                     End If
                 ElseIf desiredLevel = "3" Then
-                    If user.level >= 3 Then
+                    If user.level >= 2 Then
                         level3(user, allUsers)
                         x = True
-                    ElseIf user.level < 3 Then
-                        MsgBox("you haven't unlocked that level yet")
+                    ElseIf user.level < 2 Then
+                        ListBox2.Items.Add("you haven't unlocked that level yet")
                     Else
-                        MsgBox("error")
+                        ListBox2.Items.Add("error")
                     End If
                 ElseIf desiredLevel > 3 Or desiredLevel < 1 Then
                     MsgBox("there's only 3 levels")
@@ -130,18 +117,21 @@ Public Class Form1
             ElseIf userInput1 = "start" Then
                 level1(user, allUsers)
             Else
-                MsgBox("error")
+                ListBox2.Items.Add("error")
                 x = True
             End If
         End While
 
     End Sub
 
-    Sub verifyLogin(ByVal users() As userInformation, ByVal userPassword As String, ByVal userUsername As String, ByRef loginVerified As Boolean)
+    Sub verifyLogin(ByVal users() As userInformation, ByVal userPassword As String, ByVal userUsername As String, ByRef loginVerified As Boolean, ByRef user As userInformation)
 
         For x As Integer = 0 To 9 Step 1
             If users(x).username = userUsername And users(x).password = userPassword Then
                 loginVerified = True
+                user.id = users(x).id
+                user.username = users(x).username
+                user.level = users(x).level
             End If
         Next
 
@@ -160,17 +150,6 @@ Public Class Form1
         Dim outer As Integer = 8
         Dim placeHolder As userInformation
 
-        users(0).level = "28"
-        users(1).level = "12"
-        users(2).level = "90"
-        users(3).level = "34"
-        users(4).level = "59"
-        users(5).level = "0"
-        users(6).level = "2"
-        users(7).level = "8"
-        users(8).level = "27"
-        users(9).level = "14"
-
         While swaps = True And outer >= 0
             swaps = False
             For inner = 0 To outer
@@ -184,21 +163,69 @@ Public Class Form1
             outer = outer - 1
         End While
 
-        For x As Integer = 0 To 9 Step 1
-            MsgBox(users(x).level)
+        ListBox1.Items.Add("the player with the highest score is " & users(9).username & " and their score is " & users(9).level)
+
+        For x As Integer = 0 To 8 Step 1
+            If users(x).level = users(9).level Then
+                ListBox1.Items.Add(users(x).username & " also tied with " & users(9).username)
+            End If
         Next
 
     End Sub
 
-    Sub dataBaseConnection(ByRef users() As userInformation)
+    Sub registrationDatabaseConnection(ByVal tempUsername As String, ByVal tempPassword As String, ByRef user As userInformation, ByVal max As Integer)
+
+        Try
+            Dim SQLReader As OleDbDataReader
+            Dim connection_type As String = "Provider=Microsoft.ACE.OLEDB.12.0;"
+            Dim file_location As String = "Data Source=C:\Users\sahil\Desktop\Adv H Quiz\userInformationDatabase.accdb"
+            Dim conn As OleDbConnection
+            conn = New OleDbConnection(connection_type & file_location)
+            conn.Open()
+
+            Dim query As String = "INSERT INTO userInformation(Username, Password, Level) VALUES ('" & tempUsername & "', '" & tempPassword & "', " & 0 & ");"
+            MsgBox(query)
+
+            Dim command As New OleDbCommand(query, conn)
+            SQLReader = command.ExecuteReader()
+
+        Catch ex As Exception
+            ListBox2.Items.Add(ex.Message)
+        End Try
+
+    End Sub
+
+    Sub saveAccount(ByVal user As userInformation)
+
+        Try
+            Dim SQLReader As OleDbDataReader
+            Dim connection_type As String = "Provider=Microsoft.ACE.OLEDB.12.0;"
+            Dim file_location As String = "Data Source=C:\Users\sahil\Desktop\Adv H Quiz\userInformationDatabase.accdb"
+            Dim conn As OleDbConnection
+            conn = New OleDbConnection(connection_type & file_location)
+            conn.Open()
+
+            Dim query As String = "INSERT INTO userInformation(User ID, Username, Password, Level) VALUES (" & user.id & ", '" & user.username & "', '" & user.password & "', " & user.level & ");"
+
+            Dim command As New OleDbCommand(query, conn)
+            SQLReader = command.ExecuteReader()
+
+        Catch ex As Exception
+            ListBox2.Items.Add(ex.Message)
+        End Try
+
+    End Sub
+
+    Sub readDatabaseConnection(ByRef users() As userInformation)
 
         Dim i As Integer = 0
 
         Try
             'connection to the database executing the query and reading in the data
             Dim SQLReader As OleDbDataReader
+
             Dim connection_type As String = "Provider=Microsoft.ACE.OLEDB.12.0;"
-            Dim file_location As String = "Data Source=C:\Users\sahil\Desktop\Adv H Quiz\userInformationDatabase.accdb"
+            Dim file_location As String = "Data Source=C:\Users\sahil\Desktop\userInformationDatabase.accdb"
             Dim conn As OleDbConnection
             conn = New OleDbConnection(connection_type & file_location)
             conn.Open()
@@ -211,16 +238,16 @@ Public Class Form1
                 While SQLReader.Read
                     users(i).id = SQLReader("User ID")
                     users(i).username = SQLReader("Username")
-                    users(i).password = ("Password")
+                    users(i).password = SQLReader("Password")
                     users(i).level = SQLReader("Level")
                     i = i + 1
                 End While
             Else
-                MsgBox("no results returned")
+                ListBox2.Items.Add("no results returned")
             End If
 
         Catch ex As Exception
-            MsgBox(ex.Message)
+            ListBox2.Items.Add(ex.Message)
         End Try
 
     End Sub
@@ -234,15 +261,15 @@ Public Class Form1
             userAnswer = InputBox("what is 2+2?")
             If userAnswer = "4" Then
                 levelComplete = True
-                MsgBox("correct!")
+                ListBox2.Items.Add("correct!")
                 If user.level < 1 Then
                     user.level = 1
                 End If
             ElseIf userAnswer <> "4" Then
                 levelComplete = False
-                MsgBox("incorrect")
+                ListBox2.Items.Add("incorrect")
             Else
-                MsgBox("error")
+                ListBox2.Items.Add("error")
             End If
         End While
 
@@ -250,10 +277,10 @@ Public Class Form1
         If [continue] = "yes" Then
             level2(user, users)
         ElseIf [continue] = "no" Then
-            homeScreen(user, users)
+            homeScreen(user, users, True)
         Else
-            MsgBox("error")
-            homeScreen(user, users)
+            ListBox2.Items.Add("error")
+            homeScreen(user, users, True)
         End If
 
     End Sub
@@ -267,15 +294,15 @@ Public Class Form1
             userAnswer = InputBox("what is 4+4?")
             If userAnswer = "8" Then
                 levelComplete = True
-                MsgBox("correct!")
+                ListBox2.Items.Add("correct!")
                 If user.level < 2 Then
                     user.level = 2
                 End If
             ElseIf userAnswer <> "8" Then
                 levelComplete = False
-                MsgBox("incorrect")
+                ListBox2.Items.Add("incorrect")
             Else
-                MsgBox("error")
+                ListBox2.Items.Add("error")
             End If
         End While
 
@@ -283,10 +310,10 @@ Public Class Form1
         If [continue] = "yes" Then
             level3(user, users)
         ElseIf [continue] = "no" Then
-            homeScreen(user, users)
+            homeScreen(user, users, True)
         Else
-            MsgBox("error")
-            homeScreen(user, users)
+            ListBox2.Items.Add("error")
+            homeScreen(user, users, True)
         End If
 
     End Sub
@@ -300,20 +327,82 @@ Public Class Form1
             userAnswer = InputBox("what is 6+6?")
             If userAnswer = "12" Then
                 levelComplete = True
-                MsgBox("correct!")
+                ListBox2.Items.Add("correct!")
                 If user.level < 3 Then
                     user.level = 3
                 End If
             ElseIf userAnswer <> "12" Then
                 levelComplete = False
-                MsgBox("incorrect")
+                ListBox2.Items.Add("incorrect")
             Else
-                MsgBox("error")
+                ListBox2.Items.Add("error")
             End If
         End While
 
-        MsgBox("You have completed the game! the program will now restart you can continue from any level")
+        MsgBox("You have completed the game! the program will now restart you will be signed out")
+        saveAccount(user)
 
     End Sub
 
+    Private Sub Button2_Click(sender As Object, e As EventArgs) Handles Button2.Click 'Button to refresh leaderboard
+
+        Dim users(9) As userInformation
+
+        readDatabaseConnection(users)
+        bubbleSort(users)
+
+    End Sub
+
+    Private Sub ListBox1_SelectedIndexChanged(sender As Object, e As EventArgs) Handles ListBox1.SelectedIndexChanged 'Leaderboard
+
+    End Sub
+
+    Private Sub Button3_Click(sender As Object, e As EventArgs) Handles Button3.Click 'Login Button
+
+        inputAccountInfo(tempPassword, tempUsername) 'this is where the user inputs the password and username and the program verifies they are both 8 characters
+        readDatabaseConnection(allUsers)
+        findHighestId(allUsers, max)
+        verifyLogin(allUsers, tempPassword, tempUsername, verifyLoginDetails, user) 'this is the method that checks the 10 accounts imported in from the database and compares them to what the user has inputted as their password and username in the login process
+
+    End Sub
+
+    Private Sub Button4_Click(sender As Object, e As EventArgs) Handles Button4.Click 'Registration Button
+
+        inputAccountInfo(tempPassword, tempUsername)
+        readDatabaseConnection(allUsers)
+        findHighestId(allUsers, max)
+        registrationDatabaseConnection(tempUsername, tempPassword, user, max)
+        findHighestId(allUsers, max)
+        user.id = max + 1
+        user.username = tempUsername
+        user.password = tempPassword
+        user.level = 0
+        login = True
+
+    End Sub
+
+    Private Sub Button5_Click(sender As Object, e As EventArgs) Handles Button5.Click 'Save button
+
+        saveAccount(user)
+
+    End Sub
+    Private Sub Button6_Click(sender As Object, e As EventArgs) Handles Button6.Click 'Sign out button
+
+        Login = False
+
+    End Sub
+    Private Sub ListBox2_SelectedIndexChanged(sender As Object, e As EventArgs) Handles ListBox2.SelectedIndexChanged 'Quiz Output textbox
+
+    End Sub
+    Private Sub Label1_Click(sender As Object, e As EventArgs) Handles Label1.Click 'Leaderboard text
+
+    End Sub
+
+    Private Sub TextBox3_TextChanged(sender As Object, e As EventArgs) Handles TextBox3.TextChanged 'Quiz input
+
+    End Sub
+
+    Private Sub Button7_Click(sender As Object, e As EventArgs) Handles Button7.Click 'Enter quiz input
+
+    End Sub
 End Class
