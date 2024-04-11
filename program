@@ -15,11 +15,6 @@ Public Class Form1
     Dim max As Integer = 0
     Dim optionInputted As String = ""
     Dim loginCreate As Integer = 0
-    Private Sub Button1_Click(sender As Object, e As EventArgs) Handles Button1.Click 'Start quiz button
-
-        startProgram()
-
-    End Sub
     Structure userInformation
 
         Dim id As String
@@ -116,6 +111,9 @@ Public Class Form1
                 End If
             ElseIf userInput1 = "start" Then
                 level1(user, allUsers)
+            ElseIf userInput1 = "sign out" Then
+                ListBox2.Items.Add("please click the sign out button")
+                x = True
             Else
                 ListBox2.Items.Add("error")
                 x = True
@@ -183,7 +181,7 @@ Public Class Form1
             conn = New OleDbConnection(connection_type & file_location)
             conn.Open()
 
-            Dim query As String = "INSERT INTO userInformation(Username, Password, Level) VALUES ('" & tempUsername & "', '" & tempPassword & "', " & 0 & ");"
+            Dim query As String = "INSERT INTO [userInformation] VALUES ( " & (max + 1) & " , ' " & tempUsername & " ', ' " & tempPassword & " ', " & 0 & ");"
             MsgBox(query)
 
             Dim command As New OleDbCommand(query, conn)
@@ -322,7 +320,6 @@ Public Class Form1
 
         Dim userAnswer As String
         Dim levelComplete As Boolean
-        Dim [continue] As String
         While levelComplete <> True
             userAnswer = InputBox("what is 6+6?")
             If userAnswer = "12" Then
@@ -344,7 +341,19 @@ Public Class Form1
 
     End Sub
 
-    Private Sub Button2_Click(sender As Object, e As EventArgs) Handles Button2.Click 'Button to refresh leaderboard
+
+    Private Sub ListBox1_SelectedIndexChanged(sender As Object, e As EventArgs)
+
+    End Sub
+
+    Private Sub ListBox1_SelectedIndexChanged_1(sender As Object, e As EventArgs) Handles ListBox1.SelectedIndexChanged 'Leaderboard
+
+    End Sub
+    Private Sub ListBox2_SelectedIndexChanged_1(sender As Object, e As EventArgs) Handles ListBox2.SelectedIndexChanged 'Quiz Output textbox
+
+    End Sub
+
+    Private Sub Button5_Click_1(sender As Object, e As EventArgs) Handles Button5.Click 'Leaderboard Button
 
         Dim users(9) As userInformation
 
@@ -353,20 +362,21 @@ Public Class Form1
 
     End Sub
 
-    Private Sub ListBox1_SelectedIndexChanged(sender As Object, e As EventArgs) Handles ListBox1.SelectedIndexChanged 'Leaderboard
+    Private Sub Button4_Click_1(sender As Object, e As EventArgs) Handles Button4.Click 'Save button
+
+        saveAccount(user)
 
     End Sub
-
-    Private Sub Button3_Click(sender As Object, e As EventArgs) Handles Button3.Click 'Login Button
+    Private Sub Button2_Click_1(sender As Object, e As EventArgs) Handles Button2.Click 'Login Button
 
         inputAccountInfo(tempPassword, tempUsername) 'this is where the user inputs the password and username and the program verifies they are both 8 characters
         readDatabaseConnection(allUsers)
         findHighestId(allUsers, max)
         verifyLogin(allUsers, tempPassword, tempUsername, verifyLoginDetails, user) 'this is the method that checks the 10 accounts imported in from the database and compares them to what the user has inputted as their password and username in the login process
 
-    End Sub
 
-    Private Sub Button4_Click(sender As Object, e As EventArgs) Handles Button4.Click 'Registration Button
+    End Sub
+    Private Sub Button4_Click(sender As Object, e As EventArgs) 'Registration Button
 
         inputAccountInfo(tempPassword, tempUsername)
         readDatabaseConnection(allUsers)
@@ -381,28 +391,20 @@ Public Class Form1
 
     End Sub
 
-    Private Sub Button5_Click(sender As Object, e As EventArgs) Handles Button5.Click 'Save button
+    Private Sub Button6_Click_1(sender As Object, e As EventArgs) Handles Button6.Click 'Sign out button
 
-        saveAccount(user)
-
-    End Sub
-    Private Sub Button6_Click(sender As Object, e As EventArgs) Handles Button6.Click 'Sign out button
-
-        Login = False
+        login = False
+        verifyLoginDetails = False
+        ListBox2.Items.Add("you have logged out")
 
     End Sub
-    Private Sub ListBox2_SelectedIndexChanged(sender As Object, e As EventArgs) Handles ListBox2.SelectedIndexChanged 'Quiz Output textbox
-
-    End Sub
-    Private Sub Label1_Click(sender As Object, e As EventArgs) Handles Label1.Click 'Leaderboard text
+    Private Sub Label1_Click_1(sender As Object, e As EventArgs) Handles Label1.Click 'Leaderboard label
 
     End Sub
 
-    Private Sub TextBox3_TextChanged(sender As Object, e As EventArgs) Handles TextBox3.TextChanged 'Quiz input
+    Private Sub Button1_Click_1(sender As Object, e As EventArgs) Handles Button1.Click 'start quiz button
 
-    End Sub
-
-    Private Sub Button7_Click(sender As Object, e As EventArgs) Handles Button7.Click 'Enter quiz input
+        startProgram()
 
     End Sub
 End Class
