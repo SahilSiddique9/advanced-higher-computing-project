@@ -11,11 +11,11 @@ Public Class Form1
     Dim tempPassword As String = ""
 
     Dim login As Boolean = False 'variables for program operation
-    Dim verifyLoginDetails As Boolean = False
     Dim max As Integer = 0
     Dim optionInputted As String = ""
     Dim loginCreate As Integer = 0
-    Structure userInformation
+    Dim locked As Boolean
+    Structure userInformation 'define a record structure that will store all users information from the database table along with the current logged in user
 
         Dim id As String
         Dim username As String
@@ -26,28 +26,36 @@ Public Class Form1
 
     Sub startProgram()
 
-        If verifyLoginDetails <> True Then
-            ListBox2.Items.Add("login to an existing account or create a new account or see the leaderboard")
-        ElseIf verifyLoginDetails = True Then
-            homeScreen(user, allUsers, verifyLoginDetails)
+        If login <> True Then 'this if statement is used to verify if the user is logged in or not
+            ListBox2.Items.Add("login to an existing account or create a new account to play the main game")
+        ElseIf login = True Then
+            homeScreen(user, allUsers, login)
         Else
             ListBox2.Items.Add("error")
         End If
 
     End Sub
-    Sub findHighestId(ByVal users() As userInformation, ByRef max As Integer)
+    Sub findHighestId(ByVal users() As userInformation, ByRef max As Integer, ByRef locked As Boolean)
 
-        For x As Integer = 0 To 9 Step 1
-            If users(x).id > max Then
-                max = users(x).id
+        For y = 0 To 9 Step 1 'loop ends at 10 as if there is an 11th id it will account for this
+            If users(y).id > max Then
+                max = users(y).id
             End If
         Next
 
+        If max = 11 Then 'simply checks if there is more than 10 users and if there is displays an error message
+            MsgBox("there is too many users")
+            locked = True
+        ElseIf max <= 10 Then
+            MsgBox("there is " & max & " users")
+            locked = False
+        End If
+
     End Sub
-    Sub inputAccountInfo(ByRef Password As String, ByRef Username As String)
+    Sub inputAccountInfo(ByRef Password As String, ByRef Username As String) 'this method is used for any inputs of user information this will validate whether any usernames or passwords entered into the program are 8 characters
 
         Dim sign As Boolean ' variable to keep loop if username and password is not 8 characters
-        Dim characterCount1 As Integer
+        Dim characterCount1 As Integer 'variables to hold the character count for username and passwords
         Dim characterCount2 As Integer
 
         While sign <> True
@@ -74,7 +82,7 @@ Public Class Form1
         End While
 
     End Sub
-    Sub homeScreen(ByRef user As userInformation, ByVal allUsers() As userInformation, ByRef loginStatus As Boolean)
+    Sub homeScreen(ByRef user As userInformation, ByVal allUsers() As userInformation, ByRef loginStatus As Boolean) 'this method manages what level is being played and is a homescreen for signing out and for selecting a level and signing out
 
         Dim desiredLevel As String
         Dim userInput1 As String
@@ -122,20 +130,22 @@ Public Class Form1
 
     End Sub
 
-    Sub verifyLogin(ByVal users() As userInformation, ByVal userPassword As String, ByVal userUsername As String, ByRef loginVerified As Boolean, ByRef user As userInformation)
+    Sub verifyLogin(ByVal users() As userInformation, ByVal userPassword As String, ByVal userUsername As String, ByRef login As Boolean, ByRef user As userInformation) 'this method is used to verify whether the username and password entered by the user is equal to any of the usernames and passwords for 
 
         For x As Integer = 0 To 9 Step 1
             If users(x).username = userUsername And users(x).password = userPassword Then
-                loginVerified = True
+                login = True
                 user.id = users(x).id
                 user.username = users(x).username
                 user.level = users(x).level
+                ListBox3.Items.Add("hello " & user.username & "!")
+                ListBox4.Items.Add(user.level)
             End If
         Next
 
-        If loginVerified = True Then
+        If login = True Then
             MsgBox("login was verified!")
-        ElseIf loginVerified = False Then
+        ElseIf login = False Then
             MsgBox("login was not verified please enter your username and password again")
         End If
 
@@ -173,40 +183,55 @@ Public Class Form1
 
     Sub registrationDatabaseConnection(ByVal tempUsername As String, ByVal tempPassword As String, ByRef user As userInformation, ByVal max As Integer)
 
-        Try
-            Dim SQLReader As OleDbDataReader
-            Dim connection_type As String = "Provider=Microsoft.ACE.OLEDB.12.0;"
-            Dim file_location As String = "Data Source=C:\Users\sahil\Desktop\Adv H Quiz\userInformationDatabase.accdb"
-            Dim conn As OleDbConnection
-            conn = New OleDbConnection(connection_type & file_location)
-            conn.Open()
+        If max <= 10 Then
+            Try
+                Dim SQLReader As OleDbDataReader
+                Dim connection_type As String = "Provider=Microsoft.ACE.OLEDB.12.0;"
+                Dim file_location As String = "Data Source=C:\Users\sahil\Desktop\userInformationDatabase.accdb"
+                Dim conn As OleDbConnection
+                conn = New OleDbConnection(connection_type & file_location)
+                conn.Open()
 
-            Dim query As String = "INSERT INTO [userInformation] VALUES ( " & (max + 1) & " , ' " & tempUsername & " ', ' " & tempPassword & " ', " & 0 & ");"
-            MsgBox(query)
+                Dim query As String = "INSERT INTO [userInformation] ([User ID], Username, [Password], [Level]) VALUES (" & (max + 1) & ", '" & tempUsername & "', '" & tempPassword & "', " & 0 & ");"
 
-            Dim command As New OleDbCommand(query, conn)
-            SQLReader = command.ExecuteReader()
+                Dim command As New OleDbCommand(query, conn)
+                SQLReader = command.ExecuteReader()
 
-        Catch ex As Exception
-            ListBox2.Items.Add(ex.Message)
-        End Try
+                user.id = max + 1
+                user.username = tempUsername
+                user.password = tempPassword
+                user.level = 0
+                login = True
 
+            Catch ex As Exception
+                ListBox2.Items.Add(ex.Message)
+            End Try
+        ElseIf max > 10 Then
+            ListBox2.Items.Add("there's too many users no new account can be made")
+        End If
     End Sub
 
-    Sub saveAccount(ByVal user As userInformation)
+    Sub saveAccount(ByVal user As userInformation, ByVal users() As userInformation) 'this method is used to save an account by deleting the row and then inserting the information back into the row with the new level
 
         Try
             Dim SQLReader As OleDbDataReader
             Dim connection_type As String = "Provider=Microsoft.ACE.OLEDB.12.0;"
-            Dim file_location As String = "Data Source=C:\Users\sahil\Desktop\Adv H Quiz\userInformationDatabase.accdb"
+            Dim file_location As String = "Data Source=C:\Users\sahil\Desktop\userInformationDatabase.accdb"
             Dim conn As OleDbConnection
             conn = New OleDbConnection(connection_type & file_location)
             conn.Open()
 
-            Dim query As String = "INSERT INTO userInformation(User ID, Username, Password, Level) VALUES (" & user.id & ", '" & user.username & "', '" & user.password & "', " & user.level & ");"
+            Dim query As String = "INSERT INTO [userInformation] ([User ID], Username, [Password], [Level]) VALUES (" & user.id & ", '" & user.username & "', '" & user.password & "', " & user.level & ");"
+
+            Dim query2 As String = "DELETE FROM [userInformation] WHERE username = '" & user.username & "';"
+
+            Dim command2 As New OleDbCommand(query2, conn)
+            SQLReader = command2.ExecuteReader()
 
             Dim command As New OleDbCommand(query, conn)
             SQLReader = command.ExecuteReader()
+
+
 
         Catch ex As Exception
             ListBox2.Items.Add(ex.Message)
@@ -250,7 +275,7 @@ Public Class Form1
 
     End Sub
 
-    Sub level1(ByRef user As userInformation, ByVal users() As userInformation)
+    Sub level1(ByRef user As userInformation, ByVal users() As userInformation) 'level 1
 
         Dim userAnswer As String
         Dim levelComplete As Boolean
@@ -283,7 +308,7 @@ Public Class Form1
 
     End Sub
 
-    Sub level2(ByRef user As userInformation, ByVal users() As userInformation)
+    Sub level2(ByRef user As userInformation, ByVal users() As userInformation) 'level 2
 
         Dim userAnswer As String
         Dim levelComplete As Boolean
@@ -309,6 +334,7 @@ Public Class Form1
             level3(user, users)
         ElseIf [continue] = "no" Then
             homeScreen(user, users, True)
+
         Else
             ListBox2.Items.Add("error")
             homeScreen(user, users, True)
@@ -316,7 +342,7 @@ Public Class Form1
 
     End Sub
 
-    Sub level3(ByRef user As userInformation, ByVal users() As userInformation)
+    Sub level3(ByRef user As userInformation, ByVal users() As userInformation) 'level 3
 
         Dim userAnswer As String
         Dim levelComplete As Boolean
@@ -337,7 +363,7 @@ Public Class Form1
         End While
 
         MsgBox("You have completed the game! the program will now restart you will be signed out")
-        saveAccount(user)
+        saveAccount(user, users)
 
     End Sub
 
@@ -364,38 +390,41 @@ Public Class Form1
 
     Private Sub Button4_Click_1(sender As Object, e As EventArgs) Handles Button4.Click 'Save button
 
-        saveAccount(user)
+        If login = True Then
+            saveAccount(user, allUsers)
+        ElseIf login = False Then
+            ListBox2.Items.Add("you are not logged in")
+        End If
+
 
     End Sub
     Private Sub Button2_Click_1(sender As Object, e As EventArgs) Handles Button2.Click 'Login Button
 
         inputAccountInfo(tempPassword, tempUsername) 'this is where the user inputs the password and username and the program verifies they are both 8 characters
         readDatabaseConnection(allUsers)
-        findHighestId(allUsers, max)
-        verifyLogin(allUsers, tempPassword, tempUsername, verifyLoginDetails, user) 'this is the method that checks the 10 accounts imported in from the database and compares them to what the user has inputted as their password and username in the login process
-
-
-    End Sub
-    Private Sub Button4_Click(sender As Object, e As EventArgs) 'Registration Button
-
-        inputAccountInfo(tempPassword, tempUsername)
-        readDatabaseConnection(allUsers)
-        findHighestId(allUsers, max)
-        registrationDatabaseConnection(tempUsername, tempPassword, user, max)
-        findHighestId(allUsers, max)
-        user.id = max + 1
-        user.username = tempUsername
-        user.password = tempPassword
-        user.level = 0
+        findHighestId(allUsers, max, locked)
+        verifyLogin(allUsers, tempPassword, tempUsername, login, user) 'this is the method that checks the 10 accounts imported in from the database and compares them to what the user has inputted as their password and username in the login process
         login = True
 
     End Sub
+    Private Sub Button3_Click(sender As Object, e As EventArgs) Handles Button3.Click 'Registration button
 
+        inputAccountInfo(tempPassword, tempUsername)
+        readDatabaseConnection(allUsers)
+        findHighestId(allUsers, max, locked)
+        registrationDatabaseConnection(tempUsername, tempPassword, user, max)
+        ListBox3.Items.Add("hello " & user.username & "!")
+        ListBox4.Items.Add(user.level)
+
+    End Sub
     Private Sub Button6_Click_1(sender As Object, e As EventArgs) Handles Button6.Click 'Sign out button
 
-        login = False
-        verifyLoginDetails = False
-        ListBox2.Items.Add("you have logged out")
+        If login = False Then
+            MsgBox("you weren't signed in")
+        ElseIf login = True Then
+            login = False
+            ListBox2.Items.Add("you have logged out")
+        End If
 
     End Sub
     Private Sub Label1_Click_1(sender As Object, e As EventArgs) Handles Label1.Click 'Leaderboard label
@@ -407,4 +436,16 @@ Public Class Form1
         startProgram()
 
     End Sub
+
+    Private Sub ListBox3_SelectedIndexChanged(sender As Object, e As EventArgs) Handles ListBox3.SelectedIndexChanged 'username display
+
+    End Sub
+
+    Private Sub ListBox4_SelectedIndexChanged(sender As Object, e As EventArgs) Handles ListBox4.SelectedIndexChanged 'level display
+
+    End Sub
+
+    'when I login delete the row 
+    'the only time the account inserts is saveaccount
+
 End Class
