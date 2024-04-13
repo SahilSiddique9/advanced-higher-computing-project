@@ -1,4 +1,5 @@
 Imports System.Data.OleDb
+Imports System.Runtime.Intrinsics.X86
 Imports Microsoft.VisualBasic.ApplicationServices
 Imports Microsoft.VisualBasic.Logging
 Public Class Form1
@@ -281,14 +282,14 @@ Public Class Form1
         Dim levelComplete As Boolean
         Dim [continue] As String
         While levelComplete <> True
-            userAnswer = InputBox("what is 2+2?")
-            If userAnswer = "4" Then
+            userAnswer = InputBox("what is the capital of France?")
+            If userAnswer = "Paris" Or userAnswer = "paris" Then
                 levelComplete = True
                 ListBox2.Items.Add("correct!")
                 If user.level < 1 Then
                     user.level = 1
                 End If
-            ElseIf userAnswer <> "4" Then
+            ElseIf userAnswer <> "Paris" Or userAnswer <> "paris" Then
                 levelComplete = False
                 ListBox2.Items.Add("incorrect")
             Else
@@ -314,14 +315,14 @@ Public Class Form1
         Dim levelComplete As Boolean
         Dim [continue] As String
         While levelComplete <> True
-            userAnswer = InputBox("what is 4+4?")
-            If userAnswer = "8" Then
+            userAnswer = InputBox("what is the capital of England")
+            If userAnswer = "London" Or userAnswer = "london" Then
                 levelComplete = True
                 ListBox2.Items.Add("correct!")
                 If user.level < 2 Then
                     user.level = 2
                 End If
-            ElseIf userAnswer <> "8" Then
+            ElseIf userAnswer <> "London" Or userAnswer <> "london" Then
                 levelComplete = False
                 ListBox2.Items.Add("incorrect")
             Else
@@ -347,14 +348,14 @@ Public Class Form1
         Dim userAnswer As String
         Dim levelComplete As Boolean
         While levelComplete <> True
-            userAnswer = InputBox("what is 6+6?")
-            If userAnswer = "12" Then
+            userAnswer = InputBox("what is the capital of Scotland")
+            If userAnswer = "Edinburgh" Or userAnswer = "edinburgh" Then
                 levelComplete = True
                 ListBox2.Items.Add("correct!")
                 If user.level < 3 Then
                     user.level = 3
                 End If
-            ElseIf userAnswer <> "12" Then
+            ElseIf userAnswer <> "Edinburgh" Or userAnswer <> "edinburgh" Then
                 levelComplete = False
                 ListBox2.Items.Add("incorrect")
             Else
@@ -402,7 +403,6 @@ Public Class Form1
 
         inputAccountInfo(tempPassword, tempUsername) 'this is where the user inputs the password and username and the program verifies they are both 8 characters
         readDatabaseConnection(allUsers)
-        findHighestId(allUsers, max, locked)
         verifyLogin(allUsers, tempPassword, tempUsername, login, user) 'this is the method that checks the 10 accounts imported in from the database and compares them to what the user has inputted as their password and username in the login process
         login = True
 
