@@ -368,11 +368,6 @@ Public Class Form1
 
     End Sub
 
-
-    Private Sub ListBox1_SelectedIndexChanged(sender As Object, e As EventArgs)
-
-    End Sub
-
     Private Sub ListBox1_SelectedIndexChanged_1(sender As Object, e As EventArgs) Handles ListBox1.SelectedIndexChanged 'Leaderboard
 
     End Sub
@@ -412,9 +407,13 @@ Public Class Form1
         inputAccountInfo(tempPassword, tempUsername)
         readDatabaseConnection(allUsers)
         findHighestId(allUsers, max, locked)
-        registrationDatabaseConnection(tempUsername, tempPassword, user, max)
-        ListBox3.Items.Add("hello " & user.username & "!")
-        ListBox4.Items.Add(user.level)
+        If max < 10 Then
+            registrationDatabaseConnection(tempUsername, tempPassword, user, max)
+            ListBox3.Items.Add("hello " & user.username & "!")
+            ListBox4.Items.Add(user.level)
+        ElseIf max >= 10 Then
+            ListBox2.Items.Add("error too many accounts")
+        End If
 
     End Sub
     Private Sub Button6_Click_1(sender As Object, e As EventArgs) Handles Button6.Click 'Sign out button
@@ -445,7 +444,15 @@ Public Class Form1
 
     End Sub
 
-    'when I login delete the row 
-    'the only time the account inserts is saveaccount
+    Private Sub Label4_Click(sender As Object, e As EventArgs) Handles Label4.Click 'Main Quiz label
 
+    End Sub
+
+    Private Sub Label2_Click(sender As Object, e As EventArgs) Handles Label2.Click 'Username label
+
+    End Sub
+
+    Private Sub Label3_Click(sender As Object, e As EventArgs) Handles Label3.Click 'Level at login label
+
+    End Sub
 End Class
